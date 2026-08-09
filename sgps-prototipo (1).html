@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SGPS Prototipo</title>
+  <style>
+    :root{
+      --bg:#f4f7fb; --panel:#ffffff; --text:#1f2937; --muted:#6b7280; --line:#dbe3ef;
+      --primary:#0f766e; --primary-2:#115e59; --accent:#2563eb; --ok:#15803d; --warn:#b45309; --danger:#b91c1c;
+      --chip:#e6fffb; --shadow:0 10px 30px rgba(15,23,42,.08); --radius:16px;
+    }
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .app{display:flex;min-height:100vh}.sidebar{width:260px;background:#0b1324;color:#e5eefc;padding:24px;display:flex;flex-direction:column;gap:20px}
+    .brand{font-weight:800;font-size:22px;letter-spacing:.5px}.sub{color:#9fb0cf;font-size:13px}
+    .nav a{display:block;color:#d8e3fb;text-decoration:none;padding:12px 14px;border-radius:12px;margin:6px 0;background:transparent}
+    .nav a.active,.nav a:hover{background:#14213d}.content{flex:1;padding:28px}.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+    .title{font-size:30px;font-weight:800}.btn{border:none;border-radius:12px;padding:11px 16px;font-weight:700;cursor:pointer}
+    .btn-primary{background:var(--primary);color:#fff}.btn-secondary{background:#e8eef8;color:#0f172a}.btn-danger{background:#fee2e2;color:#991b1b}
+    .grid{display:grid;gap:18px}.grid-4{grid-template-columns:repeat(4,1fr)}.grid-2{grid-template-columns:2fr 1fr}.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+    .kpi .label{font-size:13px;color:var(--muted)} .kpi .value{font-size:30px;font-weight:800;margin-top:8px}
+    .chip{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700}.chip-ok{background:#dcfce7;color:#166534}.chip-warn{background:#fef3c7;color:#92400e}.chip-blue{background:#dbeafe;color:#1d4ed8}.chip-red{background:#fee2e2;color:#991b1b}
+    table{width:100%;border-collapse:collapse} th,td{padding:12px;border-bottom:1px solid var(--line);text-align:left;font-size:14px} th{color:var(--muted);font-weight:700}
+    .section-title{font-size:18px;font-weight:800;margin:0 0 14px}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}.input, select, textarea{width:100%;padding:11px 12px;border:1px solid #cfd8e6;border-radius:12px;background:#fff}
+    label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:#374151}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.stack{display:grid;gap:14px}
+    .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f766e,#1d4ed8)}
+    .login-card{width:min(430px,92vw);background:#fff;padding:28px;border-radius:24px;box-shadow:0 24px 60px rgba(0,0,0,.18)}
+    .muted{color:var(--muted)} .hidden{display:none}.footer-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+    .mini{font-size:12px;color:var(--muted)} .chart{height:220px;display:flex;align-items:flex-end;gap:12px;padding:10px 0}.bar{flex:1;background:linear-gradient(180deg,#60a5fa,#1d4ed8);border-radius:10px 10px 0 0;position:relative}
+    .bar span{position:absolute;bottom:-24px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--muted)}
+    .list{display:grid;gap:12px}.item{border:1px solid var(--line);border-radius:14px;padding:14px}.right{display:flex;gap:8px;align-items:center}
+    @media (max-width: 980px){.app{flex-direction:column}.sidebar{width:100%}.grid-4,.grid-2,.form-grid{grid-template-columns:1fr}.content{padding:16px}}
+  </style>
+</head>
+<body>
+  <div id="login" class="login-wrap">
+    <div class="login-card">
+      <div style="font-size:28px;font-weight:900;color:#0f172a;">SGPS</div>
+      <p class="muted">Sistema de Gestión de Proyectos de Software</p>
+      <div class="stack" style="margin-top:18px;">
+        <div>
+          <label>Usuario</label>
+          <input class="input" id="user" value="project.manager" />
+        </div>
+        <div>
+          <label>Contraseña</label>
+          <input class="input" id="pass" type="password" value="123456" />
+        </div>
+        <div class="mini">Usuarios demo: <b>admin</b>, <b>project.manager</b>, <b>developer</b>, <b>qa</b>.</div>
+        <button class="btn btn-primary" onclick="enterApp()">Iniciar sesión</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="app" class="app hidden">
+    <aside class="sidebar">
+      <div>
+        <div class="brand">SGPS</div>
+        <div class="sub">Prototipo navegable</div>
+      </div>
+      <nav class="nav">
+        <a href="#" class="active" onclick="showView('dashboard', this)">Dashboard</a>
+        <a href="#" onclick="showView('projects', this)">Proyectos</a>
+        <a href="#" onclick="showView('projectForm', this)">Nuevo proyecto</a>
+        <a href="#" onclick="showView('tasks', this)">Tareas</a>
+        <a href="#" onclick="showView('risks', this)">Riesgos</a>
+        <a href="#" onclick="showView('reports', this)">Reportes</a>
+        <a href="#" onclick="showView('users', this)">Usuarios y roles</a>
+        <a href="#" onclick="logout()">Cerrar sesión</a>
+      </nav>
+      <div class="mini">Cumple RF-01 a RF-16 en modo prototipo visual.</div>
+    </aside>
+
+    <main class="content">
+      <section id="dashboardView" class="view">
+        <div class="topbar"><div class="title">Panel principal</div><button class="btn btn-primary" onclick="showView('projectForm')">+ Nuevo proyecto</button></div>
+        <div class="grid grid-4">
+          <div class="card kpi"><div class="label">Proyectos activos</div><div class="value">12</div></div>
+          <div class="card kpi"><div class="label">Tareas en progreso</div><div class="value">34</div></div>
+          <div class="card kpi"><div class="label">Riesgos activos</div><div class="value">7</div></div>
+          <div class="card kpi"><div class="label">Avance promedio</div><div class="value">68%</div></div>
+        </div>
+        <div class="grid grid-2" style="margin-top:18px;">
+          <div class="card">
+            <h3 class="section-title">Avance por proyecto</h3>
+            <div class="chart">
+              <div class="bar" style="height:72%"><span>CRM</span></div>
+              <div class="bar" style="height:55%"><span>Portal</span></div>
+              <div class="bar" style="height:88%"><span>Billing</span></div>
+              <div class="bar" style="height:41%"><span>API</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <h3 class="section-title">Alertas</h3>
+            <div class="list">
+              <div class="item">Riesgo alto en proyecto <b>Portal Cliente</b> — dependencia externa.</div>
+              <div class="item">3 tareas vencen hoy en <b>CRM Interno</b>.</div>
+              <div class="item">Reporte semanal pendiente de exportación.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="projectsView" class="view hidden">
+        <div class="topbar"><div class="title">Proyectos</div><div class="right"><button class="btn btn-secondary">Filtrar</button><button class="btn btn-primary" onclick="showView('projectForm')">Nuevo proyecto</button></div></div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Proyecto</th><th>Cliente</th><th>Estado</th><th>Prioridad</th><th>Avance</th><th>Responsable</th><th>Acciones</th></tr></thead>
+            <tbody>
+              <tr><td>CRM Interno</td><td>Grupo Delta</td><td><span class="chip chip-blue">En ejecución</span></td><td>Alta</td><td>72%</td><td>Ana Morales</td><td><button class="btn btn-secondary" onclick="showView('tasks')">Ver detalle</button></td></tr>
+              <tr><td>Portal Cliente</td><td>NovaTech</td><td><span class="chip chip-warn">En riesgo</span></td><td>Alta</td><td>55%</td><td>Carlos Vega</td><td><button class="btn btn-secondary" onclick="showView('risks')">Riesgos</button></td></tr>
+              <tr><td>Billing API</td><td>SoftCore</td><td><span class="chip chip-ok">Estable</span></td><td>Media</td><td>88%</td><td>María Soto</td><td><button class="btn btn-secondary">Editar</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="projectFormView" class="view hidden">
+        <div class="topbar"><div class="title">Registro de proyecto</div><button class="btn btn-secondary" onclick="showView('projects')">Volver</button></div>
+        <div class="card">
+          <div class="form-grid">
+            <div><label>Nombre del proyecto</label><input class="input" value="Nuevo SGPS Cliente" /></div>
+            <div><label>Cliente</label><input class="input" value="Empresa Ejemplo" /></div>
+            <div><label>Fecha de inicio</label><input class="input" type="date" value="2026-08-01" /></div>
+            <div><label>Fecha de fin</label><input class="input" type="date" value="2026-11-30" /></div>
+            <div><label>Estado</label><select><option>Planificación</option><option selected>En ejecución</option><option>Pausado</option><option>Finalizado</option></select></div>
+            <div><label>Prioridad</label><select><option>Alta</option><option selected>Media</option><option>Baja</option></select></div>
+            <div><label>Responsable principal</label><select><option>Ana Morales</option><option selected>Carlos Vega</option><option>María Soto</option></select></div>
+            <div><label>Porcentaje de avance</label><input class="input" value="0%" /></div>
+          </div>
+          <div class="footer-actions"><button class="btn btn-danger">Desactivar</button><button class="btn btn-secondary">Cancelar</button><button class="btn btn-primary">Guardar proyecto</button></div>
+        </div>
+      </section>
+
+      <section id="tasksView" class="view hidden">
+        <div class="topbar"><div class="title">Detalle del proyecto y tareas</div><button class="btn btn-primary">Nueva tarea</button></div>
+        <div class="card" style="margin-bottom:18px;">
+          <div class="grid grid-4">
+            <div><div class="mini">Proyecto</div><div><b>CRM Interno</b></div></div>
+            <div><div class="mini">Cliente</div><div>Grupo Delta</div></div>
+            <div><div class="mini">Estado</div><div><span class="chip chip-blue">En ejecución</span></div></div>
+            <div><div class="mini">Avance</div><div><b>72%</b></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Tarea</th><th>Responsable</th><th>Estado</th><th>Fecha límite</th><th>Fecha real</th><th>Comentarios</th><th>Acciones</th></tr></thead>
+            <tbody>
+              <tr><td>Diseño UI inicial</td><td>Laura Pérez</td><td><span class="chip chip-ok">Completada</span></td><td>2026-08-10</td><td>2026-08-09</td><td>Entregado a tiempo</td><td><button class="btn btn-secondary">Editar</button></td></tr>
+              <tr><td>API de autenticación</td><td>José Ramírez</td><td><span class="chip chip-blue">En progreso</span></td><td>2026-08-18</td><td>-</td><td>Falta integración RBAC</td><td><button class="btn btn-secondary">Actualizar estado</button></td></tr>
+              <tr><td>Pruebas QA módulo reportes</td><td>Sofía Quesada</td><td><span class="chip chip-warn">Pendiente</span></td><td>2026-08-22</td><td>-</td><td>Esperando build</td><td><button class="btn btn-secondary">Comentar</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="risksView" class="view hidden">
+        <div class="topbar"><div class="title">Riesgos del proyecto</div><button class="btn btn-primary">Nuevo riesgo</button></div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Tipo</th><th>Probabilidad</th><th>Impacto</th><th>Estado</th><th>Mitigación</th><th>Acciones</th></tr></thead>
+            <tbody>
+              <tr><td>Dependencia externa</td><td>Alta</td><td>Alta</td><td><span class="chip chip-red">Activo</span></td><td>Plan alterno con proveedor secundario</td><td><button class="btn btn-secondary">Editar</button></td></tr>
+              <tr><td>Retraso en integración</td><td>Media</td><td>Alta</td><td><span class="chip chip-warn">Monitoreo</span></td><td>Revisión técnica diaria</td><td><button class="btn btn-secondary">Actualizar</button></td></tr>
+              <tr><td>Cambio de alcance</td><td>Baja</td><td>Media</td><td><span class="chip chip-ok">Cerrado</span></td><td>Aprobación formal de cambios</td><td><button class="btn btn-secondary">Ver</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="reportsView" class="view hidden">
+        <div class="topbar"><div class="title">Reportes</div><div class="right"><button class="btn btn-secondary">Exportar PDF</button><button class="btn btn-primary">Exportar Excel</button></div></div>
+        <div class="card" style="margin-bottom:18px;">
+          <div class="form-grid">
+            <div><label>Tipo de reporte</label><select><option>Por proyecto</option><option>Por responsable</option><option>Por fecha</option></select></div>
+            <div><label>Proyecto</label><select><option>CRM Interno</option><option>Portal Cliente</option><option>Billing API</option></select></div>
+            <div><label>Desde</label><input class="input" type="date" value="2026-08-01" /></div>
+            <div><label>Hasta</label><input class="input" type="date" value="2026-08-31" /></div>
+          </div>
+          <div class="footer-actions"><button class="btn btn-primary">Generar reporte</button></div>
+        </div>
+        <div class="card">
+          <h3 class="section-title">Resultado del reporte</h3>
+          <table>
+            <thead><tr><th>Proyecto</th><th>Responsable</th><th>Avance</th><th>Riesgos activos</th><th>Estado general</th></tr></thead>
+            <tbody>
+              <tr><td>CRM Interno</td><td>Ana Morales</td><td>72%</td><td>1</td><td>Estable</td></tr>
+              <tr><td>Portal Cliente</td><td>Carlos Vega</td><td>55%</td><td>3</td><td>En riesgo</td></tr>
+              <tr><td>Billing API</td><td>María Soto</td><td>88%</td><td>0</td><td>Controlado</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="usersView" class="view hidden">
+        <div class="topbar"><div class="title">Usuarios y roles</div><button class="btn btn-primary">Nuevo usuario</button></div>
+        <div class="card" style="margin-bottom:18px;">
+          <table>
+            <thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody>
+              <tr><td>Ana Morales</td><td>ana.morales</td><td>Project Manager</td><td><span class="chip chip-ok">Activo</span></td><td><button class="btn btn-secondary">Editar</button></td></tr>
+              <tr><td>José Ramírez</td><td>jramirez</td><td>Desarrollador</td><td><span class="chip chip-ok">Activo</span></td><td><button class="btn btn-secondary">Editar</button></td></tr>
+              <tr><td>Sofía Quesada</td><td>sq</td><td>QA</td><td><span class="chip chip-ok">Activo</span></td><td><button class="btn btn-secondary">Editar</button></td></tr>
+              <tr><td>Laura Admin</td><td>admin</td><td>Administrador</td><td><span class="chip chip-blue">Privilegiado</span></td><td><button class="btn btn-secondary">Editar</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3 class="section-title">Formulario de usuario</h3>
+          <div class="form-grid">
+            <div><label>Nombre</label><input class="input" value="Nuevo usuario" /></div>
+            <div><label>Correo</label><input class="input" value="usuario@empresa.com" /></div>
+            <div><label>Usuario</label><input class="input" value="nuevo.usuario" /></div>
+            <div><label>Estado</label><select><option>Activo</option><option>Inactivo</option></select></div>
+            <div><label>Rol</label><select><option>Administrador</option><option selected>Project Manager</option><option>Desarrollador</option><option>QA</option><option>Cliente interno</option></select></div>
+            <div><label>Bitácora</label><input class="input" value="Alta de usuario / asignación de rol" /></div>
+          </div>
+          <div class="footer-actions"><button class="btn btn-secondary">Cancelar</button><button class="btn btn-primary">Guardar usuario</button></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function enterApp(){ document.getElementById('login').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); }
+    function logout(){ document.getElementById('app').classList.add('hidden'); document.getElementById('login').classList.remove('hidden'); }
+    function showView(name, el){
+      document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
+      document.getElementById(name+'View').classList.remove('hidden');
+      document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
+      if(el){ el.classList.add('active'); }
+    }
+  </script>
+</body>
+</html>
